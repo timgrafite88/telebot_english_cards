@@ -1,13 +1,17 @@
 import telebot
 from telebot import types
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
 API_TOKEN = '<YOUR_TOKEN>'
 
 bot = telebot.TeleBot(API_TOKEN)
 
-class Buttons:
-    delete_word = 'Удалить слово 🔙'
-    add_word = 'Добавить слово ➕'
+class Command:
+    ADD_WORD = 'Добавить слово ➕'
+    DELETE_WORD = 'Удалить слово🔙'
+    NEXT = 'Дальше ⏭'
+    STOP = 'Ну уж нет!'
+    LEARN = 'Учиться!'
 
 @bot.message_handler(commands=['help', 'start'])
 def send_welcome(message):
@@ -20,9 +24,13 @@ def send_welcome(message):
 Ну что, начнём ⬇️
 \
 """)
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    learn = types.KeyboardButton(Command.LEARN)
+    stop = types.KeyboardButton(Command.STOP)
+    buttons = [learn, stop]
+    markup.add(*buttons)
 
-@bot.message_handler(commands=['start', 'cards'])
-def get_cards(message):
+
 
 
 if __name__ == '__main__':
