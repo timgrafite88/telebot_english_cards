@@ -10,6 +10,10 @@ class Words(Base):
     russian_word = sq.Column(sq.String(length=100), unique=True)
     current_english_word = sq.Column(sq.String(length=100), unique=True)
 
+class Users(Base):
+    __tablename__ = 'tg_users'
+
+    id = sq.Column(sq.Integer, primary_key=True)
 
 class Facts(Base):
     __tablename__ = 'tg_facts'
@@ -20,11 +24,9 @@ class Facts(Base):
     answer = sq.Column(sq.String(length=100), nullable=False)
     date_time = sq.Column(sq.DateTime, nullable=False)
 
+    words = relationship(Words, backref='tg_facts')
+    users = relationship(Users, backref='users')
 
-class Users(Base):
-    __tablename__ = 'tg_users'
-
-    id = sq.Column(sq.Integer, primary_key=True)
 
 def create_tables(engine):
     Base.metadata.create_all(engine)
