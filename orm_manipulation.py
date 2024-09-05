@@ -16,22 +16,40 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 def add_words(message):
+
     pass
 
 def add_user(message):
+    user_ids = session.query(Users.id).select_from(Users).all()
+    if not user_ids or message not in [user[0] for user in user_ids]:
+        new_user = Users(id=message)
+        session.add(new_user)
+        session.commit()
 
-    pass
-
+#Функция получения рандомного слова на русском для перевода
 def get_words():
-    session.query(Words.russian_word).select_from(Words).get(1)
+    res = session.query(Words.russian_word).select_from(Words).all()
+    words = [w[0] for w in res]
+    word = random.choice(words)
+    return word
 
+
+#Функция получения корректного анлийского слова
 def current_translate(message):
     res = session.query(Words.current_english_word).select_from(Words).filter(Words.russian_word == message).all()
-    return res
+    return res[0][0]
 
+#Функция для получения слов с неправильным переводом для кнопок выбора
 def fake_words(message):
     res = session.query(Words.current_english_word).select_from(Words).filter(Words.russian_word != message).all()
-    return res
+    words = [w[0] for w in res]
+    random.shuffle(words)
+    return words[:3]
 
-if __name__ == '__main__':
-    get_words()
+# if __name__ == '__main__':
+#     add_user(11)
+#     translate = current_translate('Стол')
+#     print(translate)
+    # others = get_words()
+    # print(others)
+
