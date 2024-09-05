@@ -9,7 +9,7 @@ from orm_manipulation import add_words, add_user, get_words, fake_words, current
 
 state_storage = StateMemoryStorage()
 
-API_TOKEN = '7136253038:AAEYeQoigoiQfIyLDRbDTg1_MAqdC7YH2gk'
+API_TOKEN = 'YOUR_TOKEN'
 
 bot = telebot.TeleBot(API_TOKEN, state_storage=state_storage)
 
