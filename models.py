@@ -15,6 +15,14 @@ class Users(Base):
 
     id = sq.Column(sq.Integer, primary_key=True)
 
+class WordsForUsers(Base):
+    __tablename__ = 'tg_words_for_users'
+
+    id_relations = sq.Column(sq.Integer, primary_key=True)
+    user_id = sq.Column(sq.Integer, sq.ForeignKey('tg_users.id'), nullable=False)
+    word_id = sq.Column(sq.Integer, sq.ForeignKey('tg_words.id'), nullable=False)
+
+
 class Facts(Base):
     __tablename__ = 'tg_facts'
 

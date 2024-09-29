@@ -1,15 +1,17 @@
 import random
-
 import telebot
 from telebot import types, State, custom_filters
 from telebot import StatesGroup
 from telebot.storage import StateMemoryStorage
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
-from orm_manipulation import add_words, add_user, get_words, fake_words, current_translate
+from orm_manipulation import add_words, add_user, get_words, fake_words, current_translate, add_word_for_user, delete_relation, TOKEN
 
 state_storage = StateMemoryStorage()
 
-API_TOKEN = 'YOUR_TOKEN'
+# Словарь для хранения пользовательских данных
+user_data = {}
+
+API_TOKEN = TOKEN
 
 bot = telebot.TeleBot(API_TOKEN, state_storage=state_storage)
 
@@ -45,6 +47,46 @@ def send_welcome(message):
     \
     """, reply_markup=markup)
 
+@bot.message_handler(func=lambda message: message.text == Command.DELETE_WORD)
+def delete_word(message):
+    bot.reply_to(message, "Какое слово больше учить не будем (на русском языке)?")
+    user_data[message.from_user.id] = {'stage': 'RUSSIAN_WORD'}
+    russian_word = user_data[message.from_user.id].get('russian_word')
+    delete_relation(message.from_user.id, russian_word)
+    bot.reply_to(message, f"Слово '{russian_word}' удалено для Вашего изучения.")
+
+@bot.message_handler(func=lambda message: message.text == Command.ADD_WORD)
+def start_add_word(message):
+    bot.reply_to(message, "Какое слово вы хотите добавить на русском языке?")
+    user_data[message.from_user.id] = {'stage': 'RUSSIAN_WORD'}
+
+@bot.message_handler(func=lambda message: user_data.get(message.from_user.id, {}).get('stage') == 'RUSSIAN_WORD')
+def get_russian_word(message):
+    user_data[message.from_user.id]['russian_word'] = message.text
+    bot.reply_to(message, "Как это слово будет на английском?")
+    user_data[message.from_user.id]['stage'] = 'ENGLISH_WORD'
+
+@bot.message_handler(func=lambda message: user_data.get(message.from_user.id, {}).get('stage') == 'ENGLISH_WORD')
+def get_english_word(message):
+    russian_word = user_data[message.from_user.id].get('russian_word')
+    english_word = message.text
+    #добавление в таблицу слов БД, если слова там нет
+    add_words(russian_word, english_word)
+    #добавление слова в таблицу связей
+    add_word_for_user(message.from_user.id, russian_word)
+    bot.reply_to(message, f"Слово '{russian_word}' добавлено как '{english_word}'.")
+
+    # Удаляем данные пользователя после завершения
+    del user_data[message.from_user.id]
+
+@bot.message_handler(commands=['cancel'])
+def cancel(message):
+    if message.from_user.id in user_data:
+        del user_data[message.from_user.id]
+        bot.reply_to(message, "Добавление слова отменено.")
+    else:
+        bot.reply_to(message, "Нет активного процесса добавления слова.")
+
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
@@ -63,9 +105,12 @@ def get_text_messages(message):
         bot.send_message(message.chat.id, 'Жаль! Учиться - это здорово!')
 
     elif message.text == Command.NEXT:
-        word = get_words()
-        eng_translate = current_translate(word)
-        markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        word = get_words(message.from_user.id)
+        if word is None:
+            bot.send_message(message.chat.id, 'Похоже у Вас нет добавленных слов для обучения. Нажмите кнопку - добавить слово ➕')
+        else:
+            eng_translate = current_translate(word)
+            markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
         # Создаем кнопки
         btm1 = types.KeyboardButton(eng_translate)
@@ -90,12 +135,8 @@ def get_text_messages(message):
             data['translate_word'] = eng_translate
             data['other_words'] = fake_btms
 
-    elif message.text == Command.ADD_WORD:
-        pass
 
-    elif message.text == Command.DELETE_WORD:
-        pass
-
+# Обработка ответов
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def message_reply(message):
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
