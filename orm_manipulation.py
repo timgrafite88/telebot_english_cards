@@ -5,7 +5,6 @@ from models import create_tables, Users, Facts, Words, WordsForUsers
 import random
 import configparser
 
-
 # создаём объекта парсера
 config = configparser.ConfigParser()
 # читаем конфиг
@@ -46,7 +45,6 @@ def add_word_for_user(user, russian_word):
         relation = WordsForUsers(user_id=user, word_id=id_word)
         session.add(relation)
         session.commit()
-
 
 def add_user(message):
     with Session() as session:
