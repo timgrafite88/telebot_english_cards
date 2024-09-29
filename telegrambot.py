@@ -8,10 +8,14 @@ from orm_manipulation import add_words, add_user, get_words, fake_words, current
 
 state_storage = StateMemoryStorage()
 
+<<<<<<< HEAD
 # Словарь для хранения пользовательских данных
 user_data = {}
 
 API_TOKEN = TOKEN
+=======
+API_TOKEN = '7136253038:AAEYeQoigoiQfIyLDRbDTg1_MAqdC7YH2gk'
+>>>>>>> parent of d3e31bf... update project 05-09-2024
 
 bot = telebot.TeleBot(API_TOKEN, state_storage=state_storage)
 
