@@ -1,6 +1,10 @@
 import sqlalchemy as sq
 from sqlalchemy.orm import declarative_base, relationship
 
+"""
+Описание модели хранения данных в БД бота
+"""
+
 Base = declarative_base()
 
 class Words(Base):
